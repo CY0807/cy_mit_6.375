@@ -1,0 +1,1 @@
+sudo ffmpeg -f s16le -i out.pcm out.wav
