@@ -166,3 +166,58 @@ GetPut Interface总结：
 
 # Lab4
 
+本实验使用了kazutoiris/connectal的docker环境，并在Lab4实验目录下运行如下命令进入环境。
+
+````
+sudo docker run -i -t --volume .:/root kazutoiris/connectal
+````
+
+connectal simulation 结果：
+
+<img src="./image/image-20230614190706099.png" alt="image-20230614190706099" style="zoom:33%;" />
+
+此外采用了sub interface的方法将 pitch adjuct 的 factor作为可调节的变量输入到模块中。
+
+
+
+# Lab5
+
+## 1 MultiCycle
+
+**small benchmark:**
+
+<img src="./image/image-20230630094956569.png" alt="image-20230630094956569" style="zoom:33%;" /><img src="./image/image-20230630095009562.png" alt="image-20230630095009562" style="zoom:33%;" /><img src="./image/image-20230630095022974.png" alt="image-20230630095022974" style="zoom:33%;" /><img src="./image/image-20230630095112331.png" alt="image-20230630095112331" style="zoom:33%;" /><img src="./image/image-20230630095120844.png" alt="image-20230630095120844" style="zoom:33%;" />
+
+**big benchmark:**
+
+<img src="./image/image-20230630100052289.png" alt="image-20230630100052289" style="zoom:33%;" /><img src="./image/image-20230630100108783.png" alt="image-20230630100108783" style="zoom: 33%;" /><img src="./image/image-20230630100127750.png" alt="image-20230630100127750" style="zoom:33%;" /><img src="./image/image-20230630100137373.png" alt="image-20230630100137373" style="zoom:33%;" />
+
+## 2 Two Stage Ehr
+
+**small benchmark:**
+
+<img src="./image/image-20230630105450463.png" alt="image-20230630105450463" style="zoom:33%;" /><img src="./image/image-20230630103542917.png" alt="image-20230630103542917" style="zoom:33%;" /><img src="./image/image-20230630103551392.png" alt="image-20230630103551392" style="zoom:33%;" /><img src="./image/image-20230630103601133.png" alt="image-20230630103601133" style="zoom:33%;" /><img src="./image/image-20230630103612346.png" alt="image-20230630103612346" style="zoom:33%;" />
+
+**big benchmark:**
+
+<img src="./image/image-20230630103638025.png" alt="image-20230630103638025" style="zoom:33%;" /><img src="./image/image-20230630103805640.png" alt="image-20230630103805640" style="zoom:33%;" /><img src="./image/image-20230630110014766.png" alt="image-20230630110014766" style="zoom:33%;" /><img src="./image/image-20230630103824536.png" alt="image-20230630103824536" style="zoom:33%;" />
+
+## 3 Two Stage Redir
+
+**small benchmark:**
+
+<img src="./image/image-20230630112705619.png" alt="image-20230630112705619" style="zoom:33%;" /><img src="./image/image-20230630112717502.png" alt="image-20230630112717502" style="zoom:33%;" /><img src="./image/image-20230630112725548.png" alt="image-20230630112725548" style="zoom:33%;" /><img src="./image/image-20230630112738571.png" alt="image-20230630112738571" style="zoom:33%;" /><img src="./image/image-20230630112749566.png" alt="image-20230630112749566" style="zoom:33%;" />
+
+**big benchmark:**
+
+<img src="./image/image-20230630112805696.png" alt="image-20230630112805696" style="zoom:33%;" /><img src="./image/image-20230630112817373.png" alt="image-20230630112817373" style="zoom:33%;" /><img src="./image/image-20230630112829972.png" alt="image-20230630112829972" style="zoom:33%;" /><img src="./image/image-20230630112839923.png" alt="image-20230630112839923" style="zoom:33%;" />
+
+## 4 Two Stage BTB
+
+**small benchmark:**
+
+<img src="./image/image-20230630115314295.png" alt="image-20230630115314295" style="zoom:33%;" /><img src="./image/image-20230630115327745.png" alt="image-20230630115327745" style="zoom:33%;" /><img src="./image/image-20230630115344833.png" alt="image-20230630115344833" style="zoom:33%;" /><img src="./image/image-20230630115354171.png" alt="image-20230630115354171" style="zoom:33%;" /><img src="./image/image-20230630115403525.png" alt="image-20230630115403525" style="zoom:33%;" />
+
+**big benchmark:**
+
+<img src="./image/image-20230630115428349.png" alt="image-20230630115428349" style="zoom:33%;" /><img src="./image/image-20230630115438032.png" alt="image-20230630115438032" style="zoom:33%;" /><img src="./image/image-20230630115446772.png" alt="image-20230630115446772" style="zoom:33%;" /><img src="./image/image-20230630115454648.png" alt="image-20230630115454648" style="zoom:33%;" />
