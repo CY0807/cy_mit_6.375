@@ -43,15 +43,15 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
     RFile      rf    <- mkRFile;
     CsrFile    csrf  <- mkCsrFile;
 
-    FIFO#(F2D) f2d <- mkFIFO;
-    FIFO#(D2E) d2e <- mkFIFO;
+    Fifo#(2,F2D) f2d <- mkCFFifo;
+    Fifo#(2,D2E) d2e <- mkCFFifo;
 
     Reg#(Bool)  loadWaitReg <- mkReg(False);
     Reg#(RIndx) dstLoad <- mkReg(0);
 
     Reg#(Bool)  hazardReg <- mkReg(False);
     Reg#(Maybe#(Word))  fetchedInst <- mkReg(Invalid);
-    Scoreboard#(1)  sb <- mkScoreboard;
+    Scoreboard#(6)  sb <- mkCFScoreboard;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,9 +93,9 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
 ////////////////////////////////////////////////////////////////////////////////
         Data inst;
         if(isValid(fetchedInst)) begin
-            inst=fromMaybe(?,fetchedInst);
+            inst = fromMaybe(?, fetchedInst);
         end else begin
-            inst<-iMem.resp();
+            inst <- iMem.resp();
         end
         //let inst <- iMem.resp();
 
@@ -123,7 +123,7 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
                 fetchedInst <= tagged Valid inst;
             end
         end
-        else begin // wrong-path instruction
+        else begin // wrong-path instruction, stall
             f2d.deq;
             fetchedInst <= tagged Invalid;
         end
@@ -147,10 +147,10 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
         Word csrVal = csrf.rd(fromMaybe(?, dInst.csr));
 
         // execute
-        ExecInst eInst = exec(dInst, rVal1, rVal2, pcE, csrVal);
+        ExecInst eInst = exec(dInst, rVal1, rVal2, pcE, ppc, csrVal);
 
         if(!(epochE == epoch[1] && eInst.iType == Ld)) begin
-            sb.remove(eInst.dst);
+            sb.remove;
         end
 
         if (epochE == epoch[1]) begin  // right-path instruction
@@ -163,10 +163,12 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
 /// Student's Task: Issue 3
 /// Modifying the following code section to fix doFetch and doExecute rule conflicts
 ////////////////////////////////////////////////////////////////////////////////
-            let misprediction = eInst.nextPC != ppc;
+            let misprediction = eInst.mispredict;
             if ( misprediction ) begin
                 // redirect the pc
-                pc[1] <= eInst.nextPC;
+                let jump = eInst.iType == J || eInst.iType == Jr || eInst.iType == Br;
+                let npc = jump? eInst.addr : pcE+4;
+                pc[1] <= npc;
                 epoch[1] <= !epoch[1];
             end
 ////////////////////////////////////////////////////////////////////////////////
@@ -202,7 +204,7 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
         let data <- dMem.resp();
         rf.wr(dstLoad, data);
         loadWaitReg <= False;
-        sb.remove(tagged Valid dstLoad);
+        sb.remove;
     endrule
 
 

@@ -39,19 +39,23 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
 /// Processor module instantiation
 ////////////////////////////////////////////////////////////////////////////////
     Ehr#(2,Word) pc    <- mkEhr(0);
-    Ehr#(2,Bool) epoch <- mkEhr(False);
+    //Ehr#(2,Bool) epoch <- mkEhr(False);
+    Reg#(Bool) epoch <- mkReg(False);
     RFile      rf    <- mkBypassRFile;
     CsrFile    csrf  <- mkCsrFile;
 
-    FIFO#(F2D) f2d <- mkFIFO;
-    FIFO#(D2E) d2e <- mkFIFO;
+    Fifo#(2,F2D) f2d <- mkCFFifo;
+    Fifo#(2,D2E) d2e <- mkCFFifo;
 
     Reg#(Bool)  loadWaitReg <- mkReg(False);
     Reg#(RIndx) dstLoad <- mkReg(0);
 
-    Reg#(Bool)  hazardReg <- mkReg(False);
+    Ehr#(2, Maybe#(Addr)) exeRedirect <- mkEhr(Invalid);
+
     Reg#(Maybe#(Word))  fetchedInst <- mkReg(Invalid);
-    Scoreboard#(2)  sb <- mkBypassingScoreboard;
+    Scoreboard#(6)  sb <- mkCFScoreboard;
+
+    Reg#(Bit#(32)) cycle <- mkReg(0);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,10 +73,25 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
         $display("drain!");
         ddr3RespFifo.deq;
     endrule
+
+    rule drainScoreBoard( !csrf.started );
+        $display("drain!");
+        sb.remove;
+    endrule
+
 ////////////////////////////////////////////////////////////////////////////////
 /// End of Section: Memory Subsystem
 ////////////////////////////////////////////////////////////////////////////////
-
+    rule cycleCounter(csrf.started);
+        cycle <= cycle + 1;
+        /*
+        $fwrite(stderr, "Cycle %d -------------------------\n", cycle);
+        if(cycle >= 300) begin
+            $fwrite(stderr, "\n test finish, exit\n");
+            $finish;
+        end
+        */
+    endrule
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Begin of Section: Processor
@@ -81,16 +100,18 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
         let ppc = pc[0] + 4;
         iMem.req(MemReq{op: Ld, addr: pc[0], data: ?});
         pc[0] <= ppc;
-        f2d.enq(F2D {pc: pc[0], ppc: ppc, epoch: epoch[0]});
+        f2d.enq(F2D {pc: pc[0], ppc: ppc, epoch: epoch});
+        //$fwrite(stderr, "[%d] doFetch\n", cycle);
     endrule
 
 
-    rule doDecode;
+    rule doDecode if(csrf.started);
 ////////////////////////////////////////////////////////////////////////////////
 /// Student's Task : Issue 1
 /// Fix the code in this rule such that no new instruction
 /// should be fetched in the stalled state
 ////////////////////////////////////////////////////////////////////////////////
+        //$fwrite(stderr, "[%d] doDecode\n", cycle);
         Data inst;
         if(isValid(fetchedInst)) begin
             inst=fromMaybe(?,fetchedInst);
@@ -104,7 +125,7 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
 
         let x = f2d.first;
         let epochD = x.epoch;
-        if (epochD == epoch[1]) begin  // right-path instruction
+        if (epochD == epoch) begin  // right-path instruction
             let dInst = decode(inst); // rs1, rs2 are Maybe types
             // check for data hazard
             let hazard = (sb.search1(dInst.src1) || sb.search2(dInst.src2));
@@ -121,6 +142,7 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
             // if hazard detected
             else begin
                 fetchedInst <= tagged Valid inst;
+                //$fwrite(stderr, "[%d] doDecode data hazard\n", cycle);
             end
         end
         else begin // wrong-path instruction
@@ -129,13 +151,14 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
         end
     endrule
 
-    rule doExecute(!loadWaitReg);
+    
+    rule doExecute(!loadWaitReg && csrf.started);
 ////////////////////////////////////////////////////////////////////////////////
 /// Student's Task: Issue 2
 /// Fix the code in this rule by removing item from scoreboard when
 /// an instruction completes execution
 ////////////////////////////////////////////////////////////////////////////////
-
+        //$fwrite(stderr, "[%d] do Execute\n", cycle);
         let x = d2e.first;
         let pcE = x.pc; let ppc = x.ppc; let epochE = x.epoch;
         let rVal1 = x.rVal1; let rVal2 = x.rVal2;
@@ -147,13 +170,13 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
         Word csrVal = csrf.rd(fromMaybe(?, dInst.csr));
 
         // execute
-        ExecInst eInst = exec(dInst, rVal1, rVal2, pcE, csrVal);
+        ExecInst eInst = exec(dInst, rVal1, rVal2, pcE, ppc, csrVal);
 
-        if(!(epochE == epoch[1] && eInst.iType == Ld)) begin
-            sb.remove(eInst.dst);
+        if(!(epochE == epoch && eInst.iType == Ld)) begin
+            sb.remove;
         end
 
-        if (epochE == epoch[1]) begin  // right-path instruction
+        if (epochE == epoch) begin  // right-path instruction
             if(dInst.iType == Unsupported) begin
                 $fwrite(stderr, "ERROR: Executing unsupported instruction at pc: %x. Exiting\n", pcE);
                 $finish;
@@ -163,11 +186,12 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
 /// Student's Task: Issue 3
 /// Modifying the following code section to fix doFetch and doExecute rule conflicts
 ////////////////////////////////////////////////////////////////////////////////
-            let misprediction = eInst.nextPC != ppc;
+            let misprediction = eInst.mispredict;
             if ( misprediction ) begin
                 // redirect the pc
-                pc[1] <= eInst.nextPC;
-                epoch[1] <= !epoch[1];
+                let jump = eInst.iType == J || eInst.iType == Jr || eInst.iType == Br;
+                let npc = jump? eInst.addr : pcE+4;
+                exeRedirect[0] <= Valid(npc);
             end
 ////////////////////////////////////////////////////////////////////////////////
 /// End of code section for Student's Task: Issue 3
@@ -199,10 +223,21 @@ module mkProc#(Fifo#(2, DDR3_Req) ddr3ReqFifo, Fifo#(2, DDR3_Resp) ddr3RespFifo)
 /// Fix the code in this rule by removing item from scoreboard when
 /// an instruction completes execution
 ////////////////////////////////////////////////////////////////////////////////
+        //$fwrite(stderr, "[%d] LoadWait\n", cycle);
         let data <- dMem.resp();
         rf.wr(dstLoad, data);
         loadWaitReg <= False;
-        sb.remove(tagged Valid dstLoad);
+        sb.remove;
+    endrule
+
+    (* fire_when_enabled *)
+	rule cononicalizeRedirect(csrf.started);
+        if(exeRedirect[1] matches tagged Valid .r) begin
+            pc[1] <= r;
+            epoch <= !epoch;
+        end
+        exeRedirect[1] <= Invalid;
+        //$fwrite(stderr, "[%d] do cononicalize\n", cycle);
     endrule
 
 

@@ -221,3 +221,23 @@ connectal simulation 结果：
 **big benchmark:**
 
 <img src="./image/image-20230630115428349.png" alt="image-20230630115428349" style="zoom:33%;" /><img src="./image/image-20230630115438032.png" alt="image-20230630115438032" style="zoom:33%;" /><img src="./image/image-20230630115446772.png" alt="image-20230630115446772" style="zoom:33%;" /><img src="./image/image-20230630115454648.png" alt="image-20230630115454648" style="zoom:33%;" />
+
+## 5 Three Stage
+
+**small benchmark:**
+
+<img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164616701.png" alt="image-20230630164616701" style="zoom: 33%;" /><img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164628271.png" alt="image-20230630164628271" style="zoom:33%;" /><img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164645061.png" alt="image-20230630164645061" style="zoom:33%;" /><img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164705315.png" alt="image-20230630164705315" style="zoom:33%;" /><img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164714069.png" alt="image-20230630164714069" style="zoom:33%;" />
+
+**big benchmark:**
+
+<img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164744504.png" alt="image-20230630164744504" style="zoom:33%;" /><img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164801485.png" alt="image-20230630164801485" style="zoom:33%;" /><img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164812364.png" alt="image-20230630164812364" style="zoom:33%;" /><img src="C:\Users\14817\AppData\Roaming\Typora\typora-user-images\image-20230630164821643.png" alt="image-20230630164821643" style="zoom:33%;" />
+
+## 6 Three Stage Bypass
+
+**small benchmark:**
+
+<img src="./image/image-20230701111626133.png" alt="image-20230701111626133" style="zoom:33%;" /><img src="./image/image-20230701111635521.png" alt="image-20230701111635521" style="zoom:33%;" /><img src="./image/image-20230701111646287.png" alt="image-20230701111646287" style="zoom:33%;" /><img src="./image/image-20230701111700902.png" alt="image-20230701111700902" style="zoom:33%;" /><img src="./image/image-20230701111713082.png" alt="image-20230701111713082" style="zoom:33%;" />
+
+**big benchmark:**
+
+<img src="./image/image-20230701111729772.png" alt="image-20230701111729772" style="zoom:33%;" /><img src="./image/image-20230701111738294.png" alt="image-20230701111738294" style="zoom:33%;" /><img src="./image/image-20230701111747682.png" alt="image-20230701111747682" style="zoom:33%;" /><img src="./image/image-20230701111802259.png" alt="image-20230701111802259" style="zoom:33%;" />

@@ -40,7 +40,8 @@ module mkCache(WideMem wideMem, Cache ifc);
     Vector#(CacheRows, Reg#(Bool)) dirtyArray <- replicateM(mkReg(False));
     
     // Fifo#(1, Data) hitQ <- mkBypassFifo;
-    Fifo#(1, Data) hitQ <- mkPipelineFifo;
+    //Fifo#(1, Data) hitQ <- mkPipelineFifo;
+    Fifo#(2, Data) hitQ <- mkCFFifo;
     Reg#(MemReq) missReq <- mkRegU;
     Reg#(ReqStatus) mshr <- mkReg(Ready);
 
